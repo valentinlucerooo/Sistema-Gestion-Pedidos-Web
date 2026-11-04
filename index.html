@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Explora productos, arma tu pedido y coordina la entrega."
+    />
+    <title>Tienda Norte | Pedidos</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="Tienda Norte, inicio">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span>Tienda <strong>Norte</strong></span>
+      </a>
+      <nav class="header-actions" aria-label="Navegación principal">
+        <a class="header-nav-link" href="#productos">Productos</a>
+        <a class="header-nav-link" href="#historial">Mis pedidos</a>
+        <a id="accountLink" class="header-account" href="#cuenta">Ingresar</a>
+        <button id="logoutButton" class="header-logout" type="button" hidden>
+          Cerrar sesión
+        </button>
+        <a class="header-cart" href="#pedido" aria-label="Ver carrito">
+          <span aria-hidden="true">🛍️</span>
+          <span>Mi pedido</span>
+          <span id="cartCount" class="header-cart__count" aria-live="polite">0</span>
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="pageTitle">
+        <div class="hero__content">
+          <p class="eyebrow">ELEGÍ, PRIORIZÁ Y ENVIÁ</p>
+          <h1 id="pageTitle">Tu pedido, a tu manera.</h1>
+          <p class="hero__description">
+            Seleccioná los productos, contanos la prioridad y elegí el destino.
+          </p>
+          <a class="hero__link" href="#productos">Explorar productos <span aria-hidden="true">↓</span></a>
+        </div>
+        <div class="hero__art" aria-hidden="true">
+          <span class="hero__spark hero__spark--one">✳</span>
+          <span class="hero__spark hero__spark--two">✦</span>
+          <span class="hero__bag">🛍️</span>
+          <span class="hero__circle"></span>
+        </div>
+      </section>
+
+      <section id="cuenta" class="auth-section" aria-labelledby="authTitle">
+        <div class="auth-intro">
+          <p class="eyebrow">TU CUENTA</p>
+          <h2 id="authTitle">Ingresá o creá tu cuenta</h2>
+          <p>Registrate para continuar o iniciá sesión con tu correo y contraseña.</p>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist" aria-label="Acceso a tu cuenta">
+            <button
+              id="loginTab"
+              class="auth-tab is-active"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="authForm"
+              data-auth-mode="login"
+            >Iniciar sesión</button>
+            <button
+              id="registerTab"
+              class="auth-tab"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="authForm"
+              data-auth-mode="register"
+            >Registrarme</button>
+          </div>
+
+          <form id="authForm" class="auth-form" role="tabpanel" aria-labelledby="loginTab">
+            <div class="form-field auth-field" data-register-only hidden>
+              <label for="authNombre">Nombre</label>
+              <input id="authNombre" name="nombre" type="text" autocomplete="given-name" />
+            </div>
+            <div class="form-field auth-field" data-register-only hidden>
+              <label for="authApellido">Apellido</label>
+              <input id="authApellido" name="apellido" type="text" autocomplete="family-name" />
+            </div>
+            <div class="form-field auth-field">
+              <label for="authEmail">Correo electrónico</label>
+              <input
+                id="authEmail"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="tu@correo.com"
+                required
+              />
+            </div>
+            <div class="form-field auth-field">
+              <label for="authPassword">Contraseña</label>
+              <input
+                id="authPassword"
+                name="contraseña"
+                type="password"
+                autocomplete="current-password"
+                required
+              />
+            </div>
+            <button id="authSubmit" class="submit-button auth-submit" type="submit">
+              Iniciar sesión <span aria-hidden="true">→</span>
+            </button>
+            <p id="authResponse" class="form-response" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="productos" class="shop-section" aria-labelledby="productsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2 id="productsTitle">Elegí tus productos</h2>
+          </div>
+          <p class="section-heading__note">Precios expresados en pesos argentinos.</p>
+        </div>
+
+        <div id="productGrid" class="product-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="pedido" class="order-section" aria-labelledby="orderTitle">
+        <div class="order-intro">
+          <p class="eyebrow">YA CASI ESTÁ</p>
+          <h2 id="orderTitle">Tu pedido</h2>
+          <p>Revisá los productos, indicá la prioridad y seleccioná el destino.</p>
+          <div class="delivery-note">
+            <span aria-hidden="true">🚚</span>
+            <span><strong>Envío según destino</strong><br />El costo de envío se suma al total.</span>
+          </div>
+        </div>
+
+        <div class="order-card">
+          <div id="cartItems" class="cart-items" aria-live="polite">
+            <p class="cart-empty">Todavía no agregaste productos.</p>
+          </div>
+          <div class="cart-summary">
+            <div class="cart-summary__row">
+              <span>Productos</span>
+              <strong id="productsSubtotal">$ 0</strong>
+            </div>
+            <div class="cart-summary__row">
+              <span>Envío</span>
+              <strong id="shippingCost">Seleccioná un destino</strong>
+            </div>
+          </div>
+          <div class="cart-total">
+            <span>Total del pedido</span>
+            <strong id="cartTotal">$ 0</strong>
+          </div>
+
+          <form id="formPedido" class="order-form">
+            <div class="form-field">
+              <label for="prioridad">Prioridad del pedido</label>
+              <textarea
+                id="prioridad"
+                name="prioridad"
+                rows="3"
+                placeholder="Contanos qué prioridad tiene este pedido"
+                required
+              ></textarea>
+            </div>
+            <div class="form-field">
+              <label for="destino">Lugar de destino</label>
+              <select id="destino" name="destino" required>
+                <option value="" selected disabled>Seleccioná una zona</option>
+                <option value="1016">CABA</option>
+                <option value="1017">CAPITAL FEDERAL</option>
+                <option value="1018">INTERIOR</option>
+                <option value="1019">NOA</option>
+                <option value="1020">NEA</option>
+                <option value="1021">SUR ARGENTINO</option>
+                <option value="1022">INTERNACIONAL</option>
+              </select>
+            </div>
+            <button id="submitOrder" class="submit-button" type="submit" disabled>
+              Confirmar pedido <span aria-hidden="true">→</span>
+            </button>
+            <p id="mensajeRespuesta" class="form-response" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section id="historial" class="history-section" aria-labelledby="historyTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">TU CUENTA</p>
+            <h2 id="historyTitle">Historial de pedidos</h2>
+          </div>
+          <p class="section-heading__note">Pedidos realizados con tu cuenta.</p>
+        </div>
+        <p id="historyStatus" class="form-response history-status" role="status" aria-live="polite"></p>
+        <div id="orderHistory" class="history-list" aria-live="polite">
+          <p class="history-empty">Iniciá sesión para consultar tus pedidos.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand brand--footer" href="#">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span>Tienda <strong>Norte</strong></span>
+      </a>
+      <p>Gracias por elegirnos. Estamos para ayudarte.</p>
+    </footer>
+  </body>
+</html>
