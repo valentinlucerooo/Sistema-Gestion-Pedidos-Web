@@ -1,0 +1,6 @@
+@BackSIstema_HostAddress = http://localhost:5220
+
+GET {{BackSIstema_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

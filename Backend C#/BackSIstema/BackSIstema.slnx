@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="../BackBLL/BackBLL.csproj" />
+  <Project Path="../BackDAL/BackDAL.csproj" />
+  <Project Path="../BackEntity/BackEntity.csproj" />
+  <Project Path="../BackMappers/BackMappers.csproj" />
+  <Project Path="BackSIstema.csproj" />
+</Solution>
