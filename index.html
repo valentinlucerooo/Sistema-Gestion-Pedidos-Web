@@ -12,19 +12,19 @@
     <script src="app.js" defer></script>
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="#" aria-label="Tienda Norte, inicio">
+    <header class="site-header encabezado-tienda">
+      <a class="brand marca-tienda" href="#" aria-label="Tienda Norte, inicio">
         <span class="brand__mark" aria-hidden="true">N</span>
         <span>Tienda <strong>Norte</strong></span>
       </a>
-      <nav class="header-actions" aria-label="Navegación principal">
-        <a class="header-nav-link" href="#productos">Productos</a>
-        <a class="header-nav-link" href="#historial">Mis pedidos</a>
+      <nav class="header-actions navegacion-tienda" aria-label="Navegación principal">
+        <a class="header-nav-link enlace-seccion-tienda" href="#productos">Productos</a>
+        <a class="header-nav-link enlace-seccion-tienda" href="#historial">Mis pedidos</a>
         <a id="accountLink" class="header-account" href="#cuenta">Ingresar</a>
         <button id="logoutButton" class="header-logout" type="button" hidden>
           Cerrar sesión
         </button>
-        <a class="header-cart" href="#pedido" aria-label="Ver carrito">
+        <a class="header-cart acceso-carrito" href="#pedido" aria-label="Ver carrito">
           <span aria-hidden="true">🛍️</span>
           <span>Mi pedido</span>
           <span id="cartCount" class="header-cart__count" aria-live="polite">0</span>
@@ -32,9 +32,9 @@
       </nav>
     </header>
 
-    <main>
-      <section class="hero" aria-labelledby="pageTitle">
-        <div class="hero__content">
+    <main class="contenido-tienda">
+      <section class="hero portada-principal" aria-labelledby="pageTitle">
+        <div class="hero__content contenido-portada">
           <p class="eyebrow">ELEGÍ, PRIORIZÁ Y ENVIÁ</p>
           <h1 id="pageTitle">Tu pedido, a tu manera.</h1>
           <p class="hero__description">
@@ -42,7 +42,7 @@
           </p>
           <a class="hero__link" href="#productos">Explorar productos <span aria-hidden="true">↓</span></a>
         </div>
-        <div class="hero__art" aria-hidden="true">
+        <div class="hero__art ilustracion-portada" aria-hidden="true">
           <span class="hero__spark hero__spark--one">✳</span>
           <span class="hero__spark hero__spark--two">✦</span>
           <span class="hero__bag">🛍️</span>
@@ -50,14 +50,14 @@
         </div>
       </section>
 
-      <section id="cuenta" class="auth-section" aria-labelledby="authTitle">
-        <div class="auth-intro">
+      <section id="cuenta" class="auth-section seccion-acceso" aria-labelledby="authTitle">
+        <div class="auth-intro introduccion-acceso">
           <p class="eyebrow">TU CUENTA</p>
           <h2 id="authTitle">Ingresá o creá tu cuenta</h2>
           <p>Registrate para continuar o iniciá sesión con tu correo y contraseña.</p>
         </div>
 
-        <div class="auth-card">
+        <div class="auth-card tarjeta-acceso">
           <div class="auth-tabs" role="tablist" aria-label="Acceso a tu cuenta">
             <button
               id="loginTab"
@@ -117,8 +117,8 @@
         </div>
       </section>
 
-      <section id="productos" class="shop-section" aria-labelledby="productsTitle">
-        <div class="section-heading">
+      <section id="productos" class="shop-section seccion-catalogo" aria-labelledby="productsTitle">
+        <div class="section-heading encabezado-catalogo">
           <div>
             <p class="eyebrow">CATÁLOGO</p>
             <h2 id="productsTitle">Elegí tus productos</h2>
@@ -126,11 +126,11 @@
           <p class="section-heading__note">Precios expresados en pesos argentinos.</p>
         </div>
 
-        <div id="productGrid" class="product-grid" aria-live="polite"></div>
+        <div id="productGrid" class="product-grid grilla-catalogo" aria-live="polite"></div>
       </section>
 
-      <section id="pedido" class="order-section" aria-labelledby="orderTitle">
-        <div class="order-intro">
+      <section id="pedido" class="order-section seccion-compra" aria-labelledby="orderTitle">
+        <div class="order-intro introduccion-compra">
           <p class="eyebrow">YA CASI ESTÁ</p>
           <h2 id="orderTitle">Tu pedido</h2>
           <p>Revisá los productos, indicá la prioridad y seleccioná el destino.</p>
@@ -140,11 +140,11 @@
           </div>
         </div>
 
-        <div class="order-card">
-          <div id="cartItems" class="cart-items" aria-live="polite">
+        <div class="order-card panel-carrito">
+          <div id="cartItems" class="cart-items lista-articulos-carrito" aria-live="polite">
             <p class="cart-empty">Todavía no agregaste productos.</p>
           </div>
-          <div class="cart-summary">
+          <div class="cart-summary resumen-importes">
             <div class="cart-summary__row">
               <span>Productos</span>
               <strong id="productsSubtotal">$ 0</strong>
@@ -154,13 +154,13 @@
               <strong id="shippingCost">Seleccioná un destino</strong>
             </div>
           </div>
-          <div class="cart-total">
+          <div class="cart-total total-compra">
             <span>Total del pedido</span>
             <strong id="cartTotal">$ 0</strong>
           </div>
 
-          <form id="formPedido" class="order-form">
-            <div class="form-field">
+          <form id="formPedido" class="order-form formulario-confirmacion">
+            <div class="form-field campo-prioridad-pedido">
               <label for="prioridad">Prioridad del pedido</label>
               <textarea
                 id="prioridad"
@@ -170,7 +170,7 @@
                 required
               ></textarea>
             </div>
-            <div class="form-field">
+            <div class="form-field campo-destino-pedido">
               <label for="destino">Lugar de destino</label>
               <select id="destino" name="destino" required>
                 <option value="" selected disabled>Seleccioná una zona</option>
@@ -191,8 +191,8 @@
         </div>
       </section>
 
-      <section id="historial" class="history-section" aria-labelledby="historyTitle">
-        <div class="section-heading">
+      <section id="historial" class="history-section seccion-historial" aria-labelledby="historyTitle">
+        <div class="section-heading encabezado-historial">
           <div>
             <p class="eyebrow">TU CUENTA</p>
             <h2 id="historyTitle">Historial de pedidos</h2>
@@ -200,14 +200,14 @@
           <p class="section-heading__note">Pedidos realizados con tu cuenta.</p>
         </div>
         <p id="historyStatus" class="form-response history-status" role="status" aria-live="polite"></p>
-        <div id="orderHistory" class="history-list" aria-live="polite">
+        <div id="orderHistory" class="history-list lista-historial-pedidos" aria-live="polite">
           <p class="history-empty">Iniciá sesión para consultar tus pedidos.</p>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <a class="brand brand--footer" href="#">
+    <footer class="site-footer pie-tienda">
+      <a class="brand brand--footer marca-pie-tienda" href="#">
         <span class="brand__mark" aria-hidden="true">N</span>
         <span>Tienda <strong>Norte</strong></span>
       </a>

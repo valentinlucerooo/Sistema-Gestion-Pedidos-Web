@@ -314,6 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const idUsuario = Number(usuarioRespuesta?.idUsuario);
 
         if (Number.isInteger(idUsuario) && idUsuario > 0) {
+          const emailUsuario = usuarioRespuesta.email || usuario.email;
           pedidosRealizados.splice(0);
           renderizarHistorial();
           localStorage.setItem(
@@ -322,10 +323,19 @@ document.addEventListener("DOMContentLoaded", () => {
               idUsuario,
               nombre: usuarioRespuesta.nombre,
               apellido: usuarioRespuesta.apellido,
-              email: usuarioRespuesta.email || usuario.email
+              email: emailUsuario
             })
           );
           actualizarNavegacionUsuario();
+
+          if (
+            typeof emailUsuario === "string"
+            && emailUsuario.trim().toLowerCase() === "admin@ecommerce.com"
+          ) {
+            window.location.href = "admin.html";
+            return;
+          }
+
           await cargarHistorialUsuario();
         } else {
           localStorage.removeItem("usuarioLogueado");
@@ -378,7 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 data-add-product="${producto.id}"
                 aria-label="Agregar ${producto.nombre} al pedido"
               >
-                <span aria-hidden="true">+</span> Agregar
+                <span aria-hidden="true">+</span> Agregar al carrito
               </button>
             </div>
           </div>
@@ -428,6 +438,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
       encabezado.append(titulo, fecha);
 
+      const estadoPedido = String(pedido.estado ?? pedido.Estado ?? "Pendiente").trim() || "Pendiente";
+      const claseEstado = estadoPedido
+        .toLocaleLowerCase("es")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      const estado = document.createElement("span");
+      estado.className = `history-card__status history-card__status--${claseEstado || "default"}`;
+      estado.textContent = `Estado: ${estadoPedido}`;
+
       const productos = document.createElement("ul");
       productos.className = "history-card__products";
       pedido.productos.forEach((producto) => {
@@ -465,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "No disponible";
       total.append(etiquetaTotal, montoTotal);
 
-      tarjeta.append(encabezado, productos, destino, prioridad, total);
+      tarjeta.append(encabezado, estado, productos, destino, prioridad, total);
       listaPedidos.append(tarjeta);
     });
   }
@@ -540,6 +561,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ...pedidos.map((pedido) => ({
           id: pedido.idpedido ?? pedido.idPedido,
           fecha: pedido.fechaRegistro,
+          estado: pedido.estado ?? pedido.Estado ?? "Pendiente",
           destino: pedido.envio?.zona || "No especificado",
           prioridad: pedido.prioridad || "No especificada",
           productos: [
@@ -727,10 +749,13 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       montoTotal: Number(total),
       prioridad: String(formulario.elements.prioridad.value.trim()),
+      tipo: "General",
+      estado: "Pendiente",
       fechaRegistro: new Date().toISOString()
     };
     const pedidoParaHistorial = {
       fecha: new Date(),
+      estado: pedido.estado,
       destino: destino.nombre,
       prioridad: pedido.prioridad,
       productos: Array.from(carrito.entries()).map(([id, cantidad]) => {

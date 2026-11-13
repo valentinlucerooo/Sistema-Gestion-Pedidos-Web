@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Panel de administración de Tienda Norte."
+    />
+    <title>Administración | Tienda Norte</title>
+    <link rel="stylesheet" href="admin.css" />
+    <script src="admin.js" defer></script>
+  </head>
+  <body>
+    <header class="admin-header encabezado-administracion">
+      <a class="brand marca-tienda" href="index.html" aria-label="Tienda Norte, volver a la tienda">
+        <span class="brand__mark" aria-hidden="true">N</span>
+        <span>Tienda <strong>Norte</strong></span>
+        <span class="brand__admin">ADMINISTRACIÓN</span>
+      </a>
+      <div class="header-actions acciones-encabezado-administracion">
+        <a class="header-link" href="index.html">Volver a la tienda</a>
+        <button id="logoutButton" class="button button--quiet" type="button">
+          Cerrar sesión
+        </button>
+      </div>
+    </header>
+
+    <main id="adminApp" class="admin-main contenido-administracion" hidden>
+      <section class="page-intro presentacion-administracion">
+        <div>
+          <p class="eyebrow">CENTRO DE CONTROL</p>
+          <h1>Administración</h1>
+          <p class="intro-copy">
+            Gestioná el catálogo, las tarifas de envío y el estado de los pedidos.
+          </p>
+        </div>
+        <div class="admin-identity">
+          <span class="identity-indicator" aria-hidden="true"></span>
+          <span id="adminEmail">admin@ecommerce.com</span>
+        </div>
+      </section>
+
+      <nav class="section-nav navegacion-administracion" aria-label="Secciones de administración">
+        <a href="#productos">Productos</a>
+        <a href="#envios">Zonas y envíos</a>
+        <a href="#pedidos">Pedidos</a>
+      </nav>
+
+      <section id="productos" class="panel panel-productos" aria-labelledby="productsTitle">
+        <div class="panel-heading encabezado-panel-productos">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2 id="productsTitle">Productos</h2>
+            <p class="panel-description">Creá, editá o eliminá productos de la tienda.</p>
+          </div>
+          <button id="addProductButton" class="button button--primary" type="button">
+            <span aria-hidden="true">＋</span> Agregar producto
+          </button>
+        </div>
+        <p id="productsMessage" class="notice" role="status" aria-live="polite"></p>
+        <div class="table-wrap contenedor-tabla-productos">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Producto</th>
+                <th scope="col">Categoría</th>
+                <th scope="col">Precio</th>
+                <th scope="col" class="actions-heading">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable">
+              <tr><td class="table-state" colspan="4">Cargando productos…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="envios" class="panel panel-envios" aria-labelledby="shippingTitle">
+        <div class="panel-heading encabezado-panel-envios">
+          <div>
+            <p class="eyebrow">ENTREGAS</p>
+            <h2 id="shippingTitle">Zonas y tarifas de envío</h2>
+            <p class="panel-description">Administrá los destinos y sus precios.</p>
+          </div>
+          <button id="addShippingButton" class="button button--primary" type="button">
+            <span aria-hidden="true">＋</span> Agregar zona
+          </button>
+        </div>
+        <p id="shippingMessage" class="notice" role="status" aria-live="polite"></p>
+        <div class="table-wrap contenedor-tabla-envios">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Zona</th>
+                <th scope="col">Precio de envío</th>
+                <th scope="col" class="actions-heading">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="shippingTable">
+              <tr><td class="table-state" colspan="3">Cargando zonas…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="pedidos" class="panel panel-pedidos" aria-labelledby="ordersTitle">
+        <div class="panel-heading panel-heading--orders encabezado-panel-pedidos">
+          <div>
+            <p class="eyebrow">OPERACIONES</p>
+            <h2 id="ordersTitle">Pedidos</h2>
+            <p class="panel-description">
+              Los pedidos existentes solo permiten actualizar su estado.
+              Los entregados se pueden archivar sin eliminarlos.
+            </p>
+          </div>
+          <label class="search-field campo-busqueda-pedidos">
+            <span class="visually-hidden">Buscar pedidos</span>
+            <input id="orderSearch" type="search" placeholder="Buscar pedido por número o cliente" />
+          </label>
+        </div>
+        <p id="ordersMessage" class="notice" role="status" aria-live="polite"></p>
+        <div class="table-wrap contenedor-tabla-pedidos">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th scope="col">Pedido</th>
+                <th scope="col">Cliente</th>
+                <th scope="col">Destino</th>
+                <th scope="col">Fecha</th>
+                <th scope="col">Total</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTable">
+              <tr><td class="table-state" colspan="7">Cargando pedidos…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="archive-note">
+          Archivar cambia el estado del pedido a “Archivado”; no borra el registro.
+        </p>
+      </section>
+
+      <footer class="admin-footer pie-administracion">
+        <span>Tienda Norte · Panel de administración</span>
+        <a href="index.html">Volver a la tienda</a>
+      </footer>
+    </main>
+
+    <dialog id="productDialog" class="edit-dialog dialogo-producto" aria-labelledby="productDialogTitle">
+      <form id="productForm" class="dialog-form formulario-dialogo-producto">
+        <div class="dialog-heading encabezado-dialogo">
+          <div>
+            <p class="eyebrow">CATÁLOGO</p>
+            <h2 id="productDialogTitle">Agregar producto</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <input name="id" type="hidden" />
+        <label class="form-field campo-descripcion-producto">
+          <span>Nombre / descripción</span>
+          <input name="descripcion" type="text" maxlength="160" required />
+        </label>
+        <label class="form-field campo-categoria-producto">
+          <span>Categoría</span>
+          <input name="productoTipo" type="text" maxlength="80" required />
+        </label>
+        <label class="form-field campo-precio-producto">
+          <span>Precio (ARS)</span>
+          <input name="precio" type="number" min="0.01" step="0.01" required />
+        </label>
+        <p class="dialog-error" role="alert"></p>
+        <div class="dialog-actions acciones-dialogo">
+          <button class="button button--quiet" type="button" data-close-dialog>Cancelar</button>
+          <button class="button button--primary" type="submit">Guardar producto</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="shippingDialog" class="edit-dialog dialogo-envio" aria-labelledby="shippingDialogTitle">
+      <form id="shippingForm" class="dialog-form formulario-dialogo-envio">
+        <div class="dialog-heading encabezado-dialogo">
+          <div>
+            <p class="eyebrow">ENTREGAS</p>
+            <h2 id="shippingDialogTitle">Agregar zona</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Cerrar">×</button>
+        </div>
+        <input name="id" type="hidden" />
+        <label class="form-field campo-zona-envio">
+          <span>Nombre de la zona</span>
+          <input name="zona" type="text" maxlength="100" required />
+        </label>
+        <label class="form-field campo-precio-envio">
+          <span>Precio de envío (ARS)</span>
+          <input name="precio" type="number" min="0.01" step="0.01" required />
+        </label>
+        <p class="dialog-error" role="alert"></p>
+        <div class="dialog-actions acciones-dialogo">
+          <button class="button button--quiet" type="button" data-close-dialog>Cancelar</button>
+          <button class="button button--primary" type="submit">Guardar zona</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>

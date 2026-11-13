@@ -364,13 +364,13 @@ h2 {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 18px;
+  gap: var(--espacio-entre-tarjetas);
 }
 
 .product-card {
   overflow: hidden;
   border: 1px solid #eeeee8;
-  border-radius: 17px;
+  border-radius: var(--radio-tarjeta-producto);
   background: var(--surface);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -685,7 +685,7 @@ h2 {
 
 .history-card {
   border: 1px solid #eeeee8;
-  border-radius: 15px;
+  border-radius: var(--radio-tarjeta-pedido);
   background: var(--surface);
   padding: 18px;
 }
@@ -712,6 +712,39 @@ h2 {
 .history-card__header time {
   color: var(--muted);
   font-size: 0.75rem;
+}
+
+.history-card__status {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 12px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: #f0f1ed;
+  color: #555b50;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.history-card__status--pendiente {
+  background: #fff3d6;
+  color: #805c0b;
+}
+
+.history-card__status--en-preparacion,
+.history-card__status--en-viaje {
+  background: #e8eef8;
+  color: #38547f;
+}
+
+.history-card__status--entregado {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+
+.history-card__status--archivado {
+  background: #ececea;
+  color: #60635d;
 }
 
 .history-card__products {
@@ -1181,12 +1214,12 @@ main {
 }
 
 .product-grid {
-  gap: 20px;
+  gap: var(--espacio-entre-tarjetas);
 }
 
 .product-card {
   border-color: #e6e9e2;
-  border-radius: 15px;
+  border-radius: var(--radio-tarjeta-producto);
   box-shadow: 0 5px 16px rgba(34, 45, 34, 0.025);
 }
 
@@ -1332,16 +1365,31 @@ main {
 }
 
 :root {
-  --page: #f4f4f4;
-  --surface: #ffffff;
-  --ink: #252525;
-  --muted: #666666;
-  --line: #d2d2d2;
-  --green: #003150;
-  --green-dark: #06101f;
-  --green-soft: #e8eef2;
-  --orange: #3e9ce3;
-  --shadow: 0 16px 38px rgba(1, 8, 26, 0.08);
+  /* Cambiá estas variables para ajustar la paleta y las medidas generales. */
+  --color-fondo-pagina: #f4f4f4;
+  --color-fondo-tarjetas: #ffffff;
+  --color-texto-principal: #252525;
+  --color-texto-secundario: #666666;
+  --color-bordes: #d2d2d2;
+  --color-principal: #003150;
+  --color-principal-oscuro: #06101f;
+  --color-principal-suave: #e8eef2;
+  --color-acento: #3e9ce3;
+  --sombra-elementos: 0 16px 38px rgba(1, 8, 26, 0.08);
+  --ancho-maximo-contenido: 1440px;
+  --espacio-entre-tarjetas: 16px;
+  --radio-tarjeta-producto: 2px;
+  --radio-tarjeta-pedido: 2px;
+  --page: var(--color-fondo-pagina);
+  --surface: var(--color-fondo-tarjetas);
+  --ink: var(--color-texto-principal);
+  --muted: var(--color-texto-secundario);
+  --line: var(--color-bordes);
+  --green: var(--color-principal);
+  --green-dark: var(--color-principal-oscuro);
+  --green-soft: var(--color-principal-suave);
+  --orange: var(--color-acento);
+  --shadow: var(--sombra-elementos);
 }
 
 html {
@@ -1363,7 +1411,7 @@ body {
 .site-header,
 main,
 .site-footer {
-  width: min(84vw, 1440px);
+  width: min(84vw, var(--ancho-maximo-contenido));
 }
 
 .site-header {
@@ -1544,12 +1592,12 @@ h2,
 }
 
 .product-grid {
-  gap: 16px;
+  gap: var(--espacio-entre-tarjetas);
 }
 
 .product-card {
   border: 1px solid #e3e3e3;
-  border-radius: 2px;
+  border-radius: var(--radio-tarjeta-producto);
   background: #fff;
   box-shadow: none;
 }
@@ -1663,7 +1711,7 @@ h2,
 
 .history-card {
   border: 1px solid #e3e3e3;
-  border-radius: 2px;
+  border-radius: var(--radio-tarjeta-pedido);
   box-shadow: none;
 }
 
@@ -1757,4 +1805,17 @@ h2,
   .product-card h3 {
     font-size: 0.95rem;
   }
+}
+
+/* Ajustes visuales de los elementos que app.js crea dentro de estos contenedores. */
+.grilla-catalogo {
+  gap: var(--espacio-entre-tarjetas);
+}
+
+.grilla-catalogo > article {
+  border-radius: var(--radio-tarjeta-producto);
+}
+
+.lista-historial-pedidos > article {
+  border-radius: var(--radio-tarjeta-pedido);
 }
