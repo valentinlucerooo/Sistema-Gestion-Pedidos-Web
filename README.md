@@ -21,10 +21,10 @@ Interfaz web para la gestión comercial de productos, tarifas de envíos y segui
 ## Vistas de la Web
 
 ### Panel de Administrador
-
+![Panel Administrador] (Vistas Proyecto Web/Vista Administrador) 
 
 ### Panel de Cliente
-
+![Panel USuario] (Vistas Proyecto Web/Vista Usuario(Clinete))
 
 ## Endpoints Consumidos
 El frontend se comunica con la API mediante las siguientes rutas base:
