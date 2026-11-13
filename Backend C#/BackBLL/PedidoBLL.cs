@@ -113,7 +113,25 @@ namespace BackBLL
             }
 
         }
-
+        public void ValidarCambioEstado(int ID, string nuevoEstado)
+        {
+            try
+            {
+                if (ID <= 0)
+                {
+                    throw new BLLException("El ID del pedido no es válido.");
+                }
+                if (nuevoEstado == "")
+                {
+                    throw new BLLException("El nuevo estado no puede estar vacío.");
+                }
+                dal.AgregarEstado(ID, nuevoEstado);
+            }
+            catch
+            {
+                throw new BLLException("Error al cambiar el estado del pedido.");
+            }
+        }
 
         public void ValidarPedido(PedidoEntity Nuevo)
         {

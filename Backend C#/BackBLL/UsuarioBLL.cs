@@ -52,7 +52,7 @@ namespace BackBLL
             {
                 return new UsuarioEntity
                 {
-                    IDUsuario = -1, // ID reservado para el admin
+                    IDUsuario = 999, // ID reservado para el admin
                     Nombre = "Administrador",
                     Email = login.Email
                 };

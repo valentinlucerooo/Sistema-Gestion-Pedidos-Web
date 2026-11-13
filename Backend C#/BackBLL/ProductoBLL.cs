@@ -9,10 +9,20 @@ namespace BackBLL
 {
     public  class ProductoBLL
     {
-        private ProductoDAL dal = new ProductoDAL();
-        public ProductoBLL(string cadenaConexion)
+        private ProductoDAL dal;
+        private string cadenaConexion;
+
+        // Constructor vacío (si se usa)
+        public ProductoBLL()
         {
-            dal = new ProductoDAL(cadenaConexion);
+            dal = new ProductoDAL();
+        }
+
+        // Constructor que recibe la cadena de conexión (¡El importante!)
+        public ProductoBLL(string conexion)
+        {
+            cadenaConexion = conexion;
+            dal = new ProductoDAL(cadenaConexion); // <- Acá le pasamos la cadena a la DAL
         }
         public List<ProductoEntity> GetAllProductos()
         {
@@ -79,6 +89,22 @@ namespace BackBLL
                 throw new BLLException("Error al agregar el producto");
             }
 
+        }
+        public void ModificarProducto(ProductoEntity producto)
+        {
+            if (producto.IDProducto <= 0)
+                throw new ArgumentException("ID de producto inválido.");
+
+            ValidarProducto(producto);
+            dal.Actualizar(producto);
+        }
+
+        public void BorrarProducto(int id)
+        {
+            if (id <= 0)
+                throw new ArgumentException("ID de producto inválido.");
+
+            dal.Eliminar(id);
         }
 
 

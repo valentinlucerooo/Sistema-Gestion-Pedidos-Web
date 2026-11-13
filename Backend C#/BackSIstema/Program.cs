@@ -19,7 +19,8 @@ builder.Services.AddControllers();
 string ConexionSQL = builder.Configuration.GetConnectionString("Conexion");
 builder.Services.AddScoped(x => new PedidoBLL(ConexionSQL));
 builder.Services.AddScoped(x => new UsuarioBLL(ConexionSQL));
-
+builder.Services.AddScoped(x => new ProductoBLL(ConexionSQL));
+builder.Services.AddScoped(x => new EnvioBLL(ConexionSQL));
 builder.Services.AddOpenApi();
 
 var app = builder.Build();

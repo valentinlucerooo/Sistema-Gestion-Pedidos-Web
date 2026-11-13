@@ -9,14 +9,18 @@ namespace BackDAL
 {
     public class ProductoDAL
     {
-        // 1. Variable privada para guardar la cadena
+        // 1. La variable de conexión
         private readonly string ConexionBS;
 
+        // 2. Constructor vacío por si se llama sin parámetros
         public ProductoDAL() { }
+
+        // 3. El constructor que recibe la cadena de conexión (¡clave!)
         public ProductoDAL(string cadenaConexion)
         {
             ConexionBS = cadenaConexion;
         }
+
         public List<ProductoEntity> ObtenerProductosBS()
         {
             try
@@ -34,9 +38,7 @@ namespace BackDAL
                             {
                                 ProductoEntity encontrado = ProductoMapper.map(lector);
                                 productos.Add(encontrado);
-
                             }
-
                         }
                     }
                 }
@@ -46,8 +48,51 @@ namespace BackDAL
             {
                 throw;
             }
-
         }
+
+        public void Actualizar(ProductoEntity producto)
+        {
+
+
+
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
+            {
+
+                string query = "UPDATE PRODUCTO SET DESCRIPCION = @Descripcion, TIPO_PRODUCTO = @ProductoTipo, PRECIO = @Precio WHERE ID_PRODUCTO = @IDProducto";
+                using (SqlCommand comando = new SqlCommand(query, conexion))
+                {
+                    comando.Parameters.AddWithValue("@IDProducto", producto.IDProducto);
+                    comando.Parameters.AddWithValue("@Descripcion", producto.Descripcion);
+                    comando.Parameters.AddWithValue("@ProductoTipo", producto.ProductoTipo);
+                    comando.Parameters.AddWithValue("@Precio", producto.Precio);
+
+                    conexion.Open();
+                    comando.ExecuteNonQuery();
+                }
+            }
+        }
+            
+        
+            
+        
+
+        // ELIMINAR PRODUCTO
+        public void Eliminar(int idProducto)
+        {
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
+            {
+                string query = "DELETE FROM PRODUCTO WHERE ID_PRODUCTO = @IDProducto";
+                using (SqlCommand comando = new SqlCommand(query, conexion))
+                {
+                    comando.Parameters.AddWithValue("@IDProducto", idProducto);
+                    conexion.Open();
+                    comando.ExecuteNonQuery();
+                }
+            }
+        }
+   
+
+
         public ProductoEntity ProductoByIDenBS(int ID)
         {
             try

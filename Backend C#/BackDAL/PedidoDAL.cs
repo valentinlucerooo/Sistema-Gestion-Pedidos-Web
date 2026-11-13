@@ -23,6 +23,21 @@ namespace BackDAL
             envios = new EnvioDAL(ConexionBS);
             productos = new ProductoDAL(ConexionBS);
         }
+        public void AgregarEstado(int ID, string Estado)
+        {
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
+            {
+                conexion.Open();
+                string consulta = "UPDATE PEDIDO SET ESTADO = @estado WHERE ID_PEDIDO = @id";
+                using (SqlCommand comando = new SqlCommand(consulta, conexion))
+                {
+                    comando.Parameters.AddWithValue("@id", ID);
+                    comando.Parameters.AddWithValue("@estado", Estado);
+                    comando.ExecuteNonQuery();
+                }
+            }
+
+        }
 
         public void AgregarPedidoBS(PedidoEntity Valido)
         {
@@ -32,8 +47,8 @@ namespace BackDAL
                 {
                     conexion.Open();
                     string consulta =
-                        @"INSERT INTO PEDIDO (ID_USUARIO, ID_PRODUCTO, CANTIDAD, ID_ENVIO, MONTO_TOTAL, PRIORIDAD, FECHA_REGISTRO) 
-                        VALUES (@idUsuario, @idProducto, @cantidad, @idEnvio, @montoTotal, @prioridad, @fechaRegistro)";
+                        @"INSERT INTO PEDIDO (ID_USUARIO, ID_PRODUCTO, CANTIDAD, ID_ENVIO, MONTO_TOTAL, PRIORIDAD, FECHA_REGISTRO, ENTREGA) 
+                        VALUES (@idUsuario, @idProducto, @cantidad, @idEnvio, @montoTotal, @prioridad, @fechaRegistro, @entrega)";
 
                     using (SqlCommand comando = new SqlCommand(consulta, conexion))
                     {
@@ -44,6 +59,7 @@ namespace BackDAL
                         comando.Parameters.AddWithValue("@montoTotal", Valido.MontoTotal);
                         comando.Parameters.AddWithValue("@prioridad", Valido.Prioridad);
                         comando.Parameters.AddWithValue("@fechaRegistro", Valido.FechaRegistro);
+                        comando.Parameters.AddWithValue("@entrega", Valido.Estado);
 
                         comando.ExecuteNonQuery();
                     }

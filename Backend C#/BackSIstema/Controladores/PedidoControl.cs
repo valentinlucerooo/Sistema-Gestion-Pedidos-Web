@@ -1,4 +1,5 @@
 ﻿using BackBLL;
+using BackDAL;
 using BackEntity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -65,7 +66,51 @@ namespace BackSIstema.Controladores
                 return BadRequest(new { mensaje = ex.Message });
             }
         }
+        [HttpGet("obtenerTodos")]
+        public IActionResult ObtenerTodos()
+        {
+            try
+            {
+                var lista = BLL.GetAll();
+                return Ok(lista);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
+
+        // 2. ENDPOINT PARA ACTUALIZAR EL ESTADO (O ARCHIVAR)
+        // Recibe el ID por la URL y el nuevo estado en formato JSON: { "estado": "Entregado" } o { "estado": "Archivado" }
+        [HttpPatch("actualizarEstado/{id}")]
+        public IActionResult ActualizarEstado(int id, [FromBody] ActualizarEstadoDto datos)
+        {
+            try
+            {
+                // Validamos que los datos no lleguen nulos
+                if (datos == null || string.IsNullOrWhiteSpace(datos.Estado))
+                {
+                    return BadRequest(new { mensaje = "El estado es requerido." });
+                }
+
+                // Llamamos a la BLL que ya armamos para validar y actualizar en la DAL
+                BLL.ValidarCambioEstado(id, datos.Estado);
+
+                return Ok(new { mensaje = "Estado actualizado con éxito." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { mensaje = ex.Message });
+            }
+        }
     }
 
-    
+    // Clase de apoyo para recibir el JSON del frontend limpiamente
+    public class ActualizarEstadoDto
+    {
+        public string Estado { get; set; }
+    }
 }
+
+    
+

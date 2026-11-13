@@ -11,6 +11,12 @@ namespace BackBLL
     public class EnvioBLL
     {
         private EnvioDAL dal;
+
+        // 1. CONSTRUCTOR VACÍO (Este es el que soluciona el error actual)
+        public EnvioBLL()
+        {
+            dal = new EnvioDAL();
+        }
         public EnvioBLL(string cadenaConexion)
         {
             dal = new EnvioDAL(cadenaConexion);
@@ -79,6 +85,37 @@ namespace BackBLL
             }
 
         }
+        public void validarModificacionEnvio(EnvioEntity Modificado)
+        {
+            try
+            {
+                if (Modificado.Zona.Length < 2)
+                {
+                    throw new BLLException("La zona debe tener al menos 2 caracteres");
+                }
+                if (Modificado.Precio <= 0)
+                {
+                    throw new BLLException("El precio del envio debe ser mayor a cero");
+                }
+                dal.Actualizar(Modificado);
+            }
+            catch
+            {
+                throw new BLLException("error al validar la zona del envio");
+            }
+        }
+        public void BorrarEnvio(int idEnvio)
+        {
+            try
+            {
+                dal.Eliminar(idEnvio);
+            }
+            catch
+            {
+                throw new BLLException("Error al eliminar el envio.");
+            }
+        }
     }
+
 }
 

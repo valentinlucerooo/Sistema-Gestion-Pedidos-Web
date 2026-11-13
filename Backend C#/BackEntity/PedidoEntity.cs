@@ -15,6 +15,7 @@ namespace BackEntity
         public string Prioridad { get; set; }
         public DateTime FechaRegistro { get; set; }
         public string Tipo { get; set; }
+        public string Estado { get;  set; }
 
 
     }
