@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BackSIstema.Controladores
 {
-     [Route("api/pedido/[Controller]")]
+     [Route("api/pedido")]
         [ApiController]
         
     public class PedidoControl: ControllerBase
@@ -29,11 +29,12 @@ namespace BackSIstema.Controladores
             }
         }
         [HttpPost("Lista")]
-        public IActionResult Post([FromBody] List<PedidoEntity> borrador)
+        public IActionResult Post([FromBody] LotePedidosRequestDTO request)
         {
             try
             {
-                BLL.ValidarBorrador(borrador);
+                // Acá usamos request.Pedidos (en plural) porque este DTO maneja listas
+                BLL.ValidarBorrador(request.Pedidos, request.Detalles);
                 return Ok("Pedidos agregados correctamente.");
             }
             catch (BLLException ex)
@@ -41,12 +42,16 @@ namespace BackSIstema.Controladores
                 return BadRequest(ex.Message);
             }
         }
+
         [HttpPost("individual")]
-        public IActionResult CrearPedido([FromBody] PedidoEntity Nuevo)
+        public IActionResult CrearPedido([FromBody] PedidoConDetallesRequestDTO request)
         {
             try
-            { BLL.ValidarPedido(Nuevo);
-                return Ok("Pedido agregado correctamente.");
+            {
+                // Llamamos a la BLL pasándole los datos que vienen dentro de la "caja" request
+                int idGenerado = BLL.ValidarPedido(request.Pedido, request.Detalles);
+
+                return Ok(new { mensaje = "Pedido agregado correctamente.", idPedido = idGenerado });
             }
             catch (BLLException ex)
             {
@@ -109,6 +114,19 @@ namespace BackSIstema.Controladores
     public class ActualizarEstadoDto
     {
         public string Estado { get; set; }
+    }
+    // Clase de apoyo para recibir el JSON combinado del pedido y sus detalles
+    public class PedidoConDetallesRequestDTO
+    {
+        public PedidoEntity Pedido { get; set; }
+        public List<DetallePedidoEntity> Detalles { get; set; }
+    }
+
+    // DTO para un lote de pedidos
+    public class LotePedidosRequestDTO
+    {
+        public List<PedidoEntity> Pedidos { get; set; }
+        public List<DetallePedidoEntity> Detalles { get; set; }
     }
 }
 

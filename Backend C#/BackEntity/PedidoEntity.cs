@@ -8,7 +8,6 @@ namespace BackEntity
     {
         public int IDpedido { get; set; }
         public UsuarioEntity Usuario{ get; set; }
-        public ProductoEntity Producto { get; set; }
         public int Cantidad { get; set; }
         public EnvioEntity Envio { get; set; }
         public decimal MontoTotal { get; set; }
@@ -16,6 +15,7 @@ namespace BackEntity
         public DateTime FechaRegistro { get; set; }
         public string Tipo { get; set; }
         public string Estado { get;  set; }
+        public List<DetallePedidoEntity> Detalles { get; set; } = new List<DetallePedidoEntity>();
 
 
     }

@@ -28,7 +28,7 @@ namespace BackBLL
 
             try
             {
-                return dal.ObtenerPedidosPorUsuario(idUsuario);
+               return  dal.ObtenerPedidosDEUsuario(idUsuario);
             }
             catch (Exception ex)
             {
@@ -47,7 +47,7 @@ namespace BackBLL
                 throw new BLLException("Error al obtener los pedidos.");
             }
         }
-        public void ValidarBorrador(List<PedidoEntity> borrador)
+        public void ValidarBorrador(List<PedidoEntity> borrador ,List<DetallePedidoEntity> detalles)
         {
             try
             {
@@ -57,11 +57,11 @@ namespace BackBLL
                 {
                     foreach (var pedido in borrador)
                     {
-                        ValidarPedido(pedido);
+                        dal.InsertarPedidoCompleto(pedido, detalles);
                     }
                     foreach (var pedido in borrador)
                     {
-                        dal.AgregarPedidoBS(pedido);
+                        dal.InsertarPedidoCompleto(pedido, detalles);
                         //aqui se guardaria el pedido en la base de datos
 
                     }
@@ -133,50 +133,60 @@ namespace BackBLL
             }
         }
 
-        public void ValidarPedido(PedidoEntity Nuevo)
+        
+          public int ValidarPedido(PedidoEntity nuevo, List<DetallePedidoEntity> detalles)
         {
             try
             {
+                // 1. Validaciones de negocio antes de abrir la transacción
+                if (detalles == null || detalles.Count == 0)
+                {
+                    throw new BLLException("El pedido debe contener al menos un producto.");
+                }
+
+                // Validamos cada detalle (producto y cantidad)
+                foreach (var detalle in detalles)
+                {
+                    if (detalle.IDproducto <= 0)
+                    {
+                        throw new BLLException("El identificador del producto no es válido.");
+                    }
+                    if (detalle.Cantidad <= 0)
+                    {
+                        throw new BLLException("La cantidad del producto debe ser mayor a cero.");
+                    }
+                }
+
+                if (nuevo.Envio.Zona =="")
+                {
+                    throw new BLLException("Debe seleccionar una zona de envío válida.");
+                }
+
+                if (nuevo.Prioridad == null || nuevo.Prioridad.Length < 4)
+                {
+                    throw new BLLException("La prioridad debe tener al menos 4 caracteres.");
+                }
+
+                // 2. Transacción para asegurar que se guarde todo junto
                 using (var trx = new TransactionScope())
                 {
-
-
-                    if (Nuevo.Producto == null)
-                    {
-                        throw new BLLException("el producto no puede estar vacio.");
-                    }
-                    if (Nuevo.Cantidad <= 0)
-                    {
-                        throw new BLLException("la cantidad debe ser mayor a cero.");
-                    }
-                    if (Nuevo.Envio == null)
-                    {
-                        throw new BLLException("debe seleccionar una zona de envio.");
-                    }
-                    
-                    if (Nuevo.Prioridad.Length <= 3)
-                    {
-                        throw new BLLException("la prioridad debe tener al menos 4 caracteres");
-                    }
-                    Nuevo.FechaRegistro = DateTime.Now;
-                    Nuevo.Producto = productoDAL.ProductoByIDenBS(Nuevo.Producto.IDProducto);
-                    Nuevo.Envio = envioDAL.BuscarIDenBS(Nuevo.Envio.IDEnvio);
-                    Nuevo.MontoTotal = (Nuevo.Producto.Precio * Nuevo.Cantidad) + Nuevo.Envio.Precio;
-                    dal.AgregarPedidoBS(Nuevo);
+                   int idGenerado = dal.InsertarPedidoCompleto(nuevo, detalles);
 
                     trx.Complete();
+                    return idGenerado;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw new BLLException("Error al validar el pedido.");
+                // Es útil propagar el mensaje original para saber si falló por una regla de negocio o por la BD
+                throw new BLLException("Error al registrar el pedido: " + ex.Message);
             }
-
-
-
-
         }
+
+
+
     }
+    
 }
 
 

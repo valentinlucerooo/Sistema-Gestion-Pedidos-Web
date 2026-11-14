@@ -39,39 +39,61 @@ namespace BackDAL
 
         }
 
-        public void AgregarPedidoBS(PedidoEntity Valido)
+
+        public int InsertarPedidoCompleto(PedidoEntity pedido, List<DetallePedidoEntity> detalles)
         {
-            try
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
             {
-                using (SqlConnection conexion = new SqlConnection(ConexionBS))
+                conexion.Open();
+                using (SqlTransaction transaccion = conexion.BeginTransaction())
                 {
-                    conexion.Open();
-                    string consulta =
-                        @"INSERT INTO PEDIDO (ID_USUARIO, ID_PRODUCTO, CANTIDAD, ID_ENVIO, MONTO_TOTAL, PRIORIDAD, FECHA_REGISTRO, ENTREGA) 
-                        VALUES (@idUsuario, @idProducto, @cantidad, @idEnvio, @montoTotal, @prioridad, @fechaRegistro, @entrega)";
-
-                    using (SqlCommand comando = new SqlCommand(consulta, conexion))
+                    try
                     {
-                        comando.Parameters.AddWithValue("@idUsuario", Valido.Usuario.IDUsuario);
-                        comando.Parameters.AddWithValue("@idProducto", Valido.Producto.IDProducto);
-                        comando.Parameters.AddWithValue("@cantidad", Valido.Cantidad);
-                        comando.Parameters.AddWithValue("@idEnvio", Valido.Envio.IDEnvio);
-                        comando.Parameters.AddWithValue("@montoTotal", Valido.MontoTotal);
-                        comando.Parameters.AddWithValue("@prioridad", Valido.Prioridad);
-                        comando.Parameters.AddWithValue("@fechaRegistro", Valido.FechaRegistro);
-                        comando.Parameters.AddWithValue("@entrega", Valido.Estado);
+                        // 1. Insertamos la cabecera y obtenemos el ID
+                        string queryPedido = @"INSERT INTO PEDIDO (ID_USUARIO, ID_ENVIO, MONTO_TOTAL, PRIORIDAD, FECHA_REGISTRO, ENTREGA) 
+                                       VALUES (@IdUsuario, @IdEnvio, @MontoTotal, @Prioridad, @FechaRegistro, @Entrega);
+                                       SELECT SCOPE_IDENTITY();";
 
-                        comando.ExecuteNonQuery();
+                        int idPedidoGenerado = 0;
+
+                        using (SqlCommand cmdPedido = new SqlCommand(queryPedido, conexion, transaccion))
+                        {
+                            cmdPedido.Parameters.AddWithValue("@IdUsuario", pedido.Usuario.IDUsuario);
+                            cmdPedido.Parameters.AddWithValue("@IdEnvio", pedido.Envio.IDEnvio);
+                            cmdPedido.Parameters.AddWithValue("@MontoTotal", pedido.MontoTotal);
+                            cmdPedido.Parameters.AddWithValue("@Prioridad", pedido.Prioridad);
+                            cmdPedido.Parameters.AddWithValue("@FechaRegistro",pedido.FechaRegistro);
+                            cmdPedido.Parameters.AddWithValue("@Entrega", pedido.Estado);
+
+                            idPedidoGenerado = Convert.ToInt32(cmdPedido.ExecuteScalar());
+                        }
+
+                        // 2. Insertamos los detalles en el bucle
+                        string queryDetalle = @"INSERT INTO DETALLE_PEDIDO (ID_PEDIDO, ID_PRODUCTO, CANTIDAD) 
+                                        VALUES (@IdPedido, @IdProducto, @Cantidad)";
+
+                        foreach (var detalle in detalles)
+                        {
+                            using (SqlCommand cmdDetalle = new SqlCommand(queryDetalle, conexion, transaccion))
+                            {
+                                cmdDetalle.Parameters.AddWithValue("@IdPedido", idPedidoGenerado);
+                                cmdDetalle.Parameters.AddWithValue("@IdProducto", detalle.IDproducto);
+                                cmdDetalle.Parameters.AddWithValue("@Cantidad", detalle.Cantidad);
+
+                                cmdDetalle.ExecuteNonQuery();
+                            }
+                        }
+                        transaccion.Commit();
+                        return idPedidoGenerado;
+                    }
+                    catch (Exception ex)
+                    {
+                        transaccion.Rollback();
+                        throw new Exception("Error al registrar el pedido: " + ex.Message);
                     }
                 }
-                
-            }
-            catch
-            {
-                throw;
             }
         }
-
         public List<PedidoEntity> ObtemerPedidosBS()
         {
             try
@@ -146,7 +168,6 @@ namespace BackDAL
                     using (SqlCommand comando = new SqlCommand(consulta, conexion))
                     {
                         comando.Parameters.AddWithValue("@id", pedido.IDpedido);
-                        comando.Parameters.AddWithValue("@producto", pedido.Producto.IDProducto);
                         comando.Parameters.AddWithValue("@cantidad", pedido.Cantidad);
                         comando.Parameters.AddWithValue("@envio", pedido.Envio.IDEnvio);
                         comando.Parameters.AddWithValue("@monto", pedido.MontoTotal);
@@ -161,60 +182,161 @@ namespace BackDAL
                 throw;
             }
         }
-        public List<PedidoEntity> ObtenerPedidosPorUsuario(int idUsuario)
+        public PedidoEntity ObtenerPedidoPorId(int idPedido)
         {
-            List<PedidoEntity> listaPedidos = new List<PedidoEntity>();
-            try
-            {
-                using (SqlConnection conexion = new SqlConnection(ConexionBS))
-                {
-                    conexion.Open();
-                    string consulta = @"SELECT P.ID_PEDIDO, P.CANTIDAD, P.MONTO_TOTAL, P.PRIORIDAD, P.FECHA_REGISTRO,
-                                       PR.ID_PRODUCTO, PR.TIPO_PRODUCTO, PR.DESCRIPCION, PR.PRECIO,
-                                       E.ID_ENVIO, E.ZONA, E.PRECIO AS PRECIO_ENVIO
-                                FROM PEDIDO P
-                                INNER JOIN PRODUCTO PR ON P.ID_PRODUCTO = PR.ID_PRODUCTO
-                                INNER JOIN ENVIO E ON P.ID_ENVIO = E.ID_ENVIO
-                                WHERE P.ID_USUARIO = @idUsuario";
+            PedidoEntity pedido = null;
 
-                    using (SqlCommand comando = new SqlCommand(consulta, conexion))
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
+            {
+                conexion.Open();
+
+                // PASO 1: Traemos la cabecera del pedido y los datos del envío
+                string consultaPedido = @"SELECT P.ID_PEDIDO, P.ID_USUARIO, P.MONTO_TOTAL, P.PRIORIDAD, P.FECHA_REGISTRO, P.ENTREGA,
+                                         E.ID_ENVIO, E.ZONA, E.PRECIO AS PRECIO_ENVIO
+                                  FROM PEDIDO P
+                                  INNER JOIN ENVIO E ON P.ID_ENVIO = E.ID_ENVIO
+                                  WHERE P.ID_PEDIDO = @idPedido";
+
+                using (SqlCommand comando = new SqlCommand(consultaPedido, conexion))
+                {
+                    comando.Parameters.AddWithValue("@idPedido", idPedido);
+                    using (SqlDataReader lector = comando.ExecuteReader())
                     {
-                        comando.Parameters.AddWithValue("@idUsuario", idUsuario);
-                        using (SqlDataReader lector = comando.ExecuteReader())
+                        if (lector.Read())
                         {
-                            while (lector.Read())
+                            pedido = new PedidoEntity
                             {
-                                PedidoEntity pedido = new PedidoEntity
+                                IDpedido = Convert.ToInt32(lector["ID_PEDIDO"]),
+                               Usuario=UsuarioMapper.map(lector),
+                                MontoTotal = Convert.ToDecimal(lector["MONTO_TOTAL"]),
+                                Prioridad = lector["PRIORIDAD"].ToString(),
+                                FechaRegistro = Convert.ToDateTime(lector["FECHA_REGISTRO"]),
+                                Estado = lector["ENTREGA"].ToString(), // O como guardes la propiedad de entrega
+                                Envio = new EnvioEntity
                                 {
-                                    IDpedido = Convert.ToInt32(lector["ID_PEDIDO"]),
-                                    Cantidad = Convert.ToInt32(lector["CANTIDAD"]),
-                                    MontoTotal = Convert.ToDecimal(lector["MONTO_TOTAL"]),
-                                    Prioridad = lector["PRIORIDAD"].ToString(),
-                                    FechaRegistro = Convert.ToDateTime(lector["FECHA_REGISTRO"]),
-                                    Producto = new ProductoEntity
-                                    {
-                                        IDProducto = Convert.ToInt32(lector["ID_PRODUCTO"]),
-                                        ProductoTipo = lector["TIPO_PRODUCTO"].ToString(),
-                                        Descripcion = lector["DESCRIPCION"].ToString(),
-                                        Precio = Convert.ToDecimal(lector["PRECIO"])
-                                    },
-                                    Envio = new EnvioEntity
-                                    {
-                                        IDEnvio = Convert.ToInt32(lector["ID_ENVIO"]),
-                                        Zona = lector["ZONA"].ToString()
-                                    }
+                                    IDEnvio = Convert.ToInt32(lector["ID_ENVIO"]),
+                                    Zona = lector["ZONA"].ToString(),
+                                    Precio = Convert.ToDecimal(lector["PRECIO_ENVIO"])
+                                },
+                                // Inicializamos la lista de detalles vacía para llenarla en el siguiente paso
+                                Detalles = new List<DetallePedidoEntity>()
+                            };
+                        }
+                    }
+                }
+
+                // Si encontramos el pedido, buscamos sus detalles (los productos asociados)
+                if (pedido != null)
+                {
+                    string consultaDetalles = @"SELECT D.ID_DETALLE, D.ID_PEDIDO, D.CANTIDAD,
+                                               PR.ID_PRODUCTO, PR.TIPO_PRODUCTO, PR.DESCRIPCION, PR.PRECIO
+                                        FROM DETALLE_PEDIDO D
+                                        INNER JOIN PRODUCTO PR ON D.ID_PRODUCTO = PR.ID_PRODUCTO
+                                        WHERE D.ID_PEDIDO = @idPedido";
+
+                    using (SqlCommand comandoDetalle = new SqlCommand(consultaDetalles, conexion))
+                    {
+                        comandoDetalle.Parameters.AddWithValue("@idPedido", idPedido);
+                        using (SqlDataReader lectorDetalle = comandoDetalle.ExecuteReader())
+                        {
+                            while (lectorDetalle.Read())
+                            {
+                                DetallePedidoEntity detalle = new DetallePedidoEntity
+                                {
+                                    IDDetallePedido = Convert.ToInt32(lectorDetalle["ID_DETALLE"]),
+                                    IDpedido = Convert.ToInt32(lectorDetalle["ID_PEDIDO"]),
+                                    Cantidad = Convert.ToInt32(lectorDetalle["CANTIDAD"]),
+                                    // Si en tu entidad DetallePedido tenés un objeto ProductoEntity mapeado, lo cargás acá:
+                                    /* Producto = new ProductoEntity { ... } */
+                                    IDproducto = Convert.ToInt32(lectorDetalle["ID_PRODUCTO"])
                                 };
-                                listaPedidos.Add(pedido);
+
+                                pedido.Detalles.Add(detalle);
                             }
                         }
                     }
                 }
-                return listaPedidos;
             }
-            catch (Exception ex)
+
+            return pedido;
+        }
+        public List<PedidoEntity> ObtenerPedidosDEUsuario(int idUsuario)
+        {
+            List<PedidoEntity> listaPedidos = new List<PedidoEntity>();
+
+            using (SqlConnection conexion = new SqlConnection(ConexionBS))
             {
-                throw new Exception("Error al obtener los pedidos del usuario", ex);
+                conexion.Open();
+
+                // 1. Traemos la cabecera de todos los pedidos del usuario con su envío
+                string consultaPedidos = @"SELECT P.ID_PEDIDO, P.ID_USUARIO, P.MONTO_TOTAL, P.PRIORIDAD, P.FECHA_REGISTRO, P.ENTREGA, 
+                                  E.ID_ENVIO, E.ZONA, E.PRECIO AS PRECIO_ENVIO, 
+                                  U.NOMBRE_USUARIO, U.APELLIDO_USUARIO,U.EMAIL_USUARIO
+                           FROM PEDIDO P 
+                           INNER JOIN ENVIO E ON P.ID_ENVIO = E.ID_ENVIO 
+                           INNER JOIN USUARIO U ON P.ID_USUARIO = U.ID_USUARIO  
+                           WHERE P.ID_USUARIO = @idUsuario";
+
+                using (SqlCommand comando = new SqlCommand(consultaPedidos, conexion))
+                {
+                    comando.Parameters.AddWithValue("@idUsuario", idUsuario);
+                    using (SqlDataReader lector = comando.ExecuteReader())
+                    {
+                        while (lector.Read())
+                        {
+                            PedidoEntity pedido = new PedidoEntity
+                            {
+                                IDpedido = Convert.ToInt32(lector["ID_PEDIDO"]),
+                                Usuario = UsuarioMapper.map(lector),
+                                MontoTotal = Convert.ToDecimal(lector["MONTO_TOTAL"]),
+                                Prioridad = lector["PRIORIDAD"].ToString(),
+                                FechaRegistro = Convert.ToDateTime(lector["FECHA_REGISTRO"]),
+                                Estado = lector["ENTREGA"].ToString(),
+                                Envio = new EnvioEntity
+                                {
+                                    IDEnvio = Convert.ToInt32(lector["ID_ENVIO"]),
+                                    Zona = lector["ZONA"].ToString(),
+                                    Precio = Convert.ToDecimal(lector["PRECIO_ENVIO"])
+                                },
+                                Detalles = new List<DetallePedidoEntity>()
+                            };
+                            listaPedidos.Add(pedido);
+                        }
+                    }
+                }
+
+                // 2. Recorremos cada pedido para buscar y rellenar su lista de detalles (productos)
+                foreach (var pedido in listaPedidos)
+                {
+                    string consultaDetalles = @"SELECT D.ID_DETALLE, D.ID_PEDIDO, D.CANTIDAD,
+                                               PR.ID_PRODUCTO, PR.TIPO_PRODUCTO, PR.DESCRIPCION, PR.PRECIO
+                                        FROM DETALLE_PEDIDO D
+                                        INNER JOIN PRODUCTO PR ON D.ID_PRODUCTO = PR.ID_PRODUCTO
+                                        WHERE D.ID_PEDIDO = @idPedido";
+
+                    using (SqlCommand comandoDetalle = new SqlCommand(consultaDetalles, conexion))
+                    {
+                        comandoDetalle.Parameters.AddWithValue("@idPedido", pedido.IDpedido);
+                        using (SqlDataReader lectorDetalle = comandoDetalle.ExecuteReader())
+                        {
+                            while (lectorDetalle.Read())
+                            {
+                                DetallePedidoEntity detalle = new DetallePedidoEntity
+                                {
+                                    IDDetallePedido = Convert.ToInt32(lectorDetalle["ID_DETALLE"]),
+                                    IDpedido = Convert.ToInt32(lectorDetalle["ID_PEDIDO"]),
+                                    Cantidad = Convert.ToInt32(lectorDetalle["CANTIDAD"]),
+                                    IDproducto = Convert.ToInt32(lectorDetalle["ID_PRODUCTO"])
+                                };
+
+                                pedido.Detalles.Add(detalle);
+                            }
+                        }
+                    }
+                }
             }
+
+            return listaPedidos;
         }
 
         public void eliminarPedidoBS(int ID)

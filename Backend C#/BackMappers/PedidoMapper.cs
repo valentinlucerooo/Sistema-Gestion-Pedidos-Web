@@ -12,8 +12,6 @@ namespace BackMappers
         {
             PedidoEntity nuevo = new PedidoEntity();
             nuevo.IDpedido = Convert.ToInt32(lector["ID_PEDIDO"]);
-            nuevo.Producto = producto;
-            nuevo.Cantidad = Convert.ToInt32(lector["CANTIDAD"]);
             nuevo.Envio = envio;
             nuevo.MontoTotal = Convert.ToDecimal(lector["MONTO_TOTAL"]);
             nuevo.Prioridad = lector["PRIORIDAD"].ToString();
