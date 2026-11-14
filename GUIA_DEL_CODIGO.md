@@ -35,15 +35,15 @@ Los `id` permiten que JavaScript encuentre un elemento concreto; por ejemplo, el
 
 El código se ejecuta cuando el navegador termina de cargar el documento (`DOMContentLoaded`).
 
-1. **Datos de la tienda:** los arreglos `productos` y `destinos` contienen el catálogo y las zonas de envío. Cada producto tiene identificador, nombre, categoría, precio, ícono y color; cada destino tiene identificador, nombre y costo.
+1. **Datos de la tienda:** el catálogo se carga desde `GET api/producto`; los IDs, nombres, categorías y precios provienen de los registros devueltos por el backend. Los destinos y sus costos se definen en `app.js`.
 2. **Estado en memoria:** `carrito` es un `Map` que relaciona el identificador de un producto con su cantidad. `pedidosRealizados` guarda los pedidos que se mostrarán en el historial. `isSubmitting` evita modificar el carrito durante el envío.
 3. **Elementos de página:** las llamadas `querySelector` guardan referencias a los elementos de `index.html`, para actualizarlos sin volver a buscarlos.
-4. **Cuenta y sesión:** las pestañas cambian entre acceso y registro. El formulario envía los datos al backend. Una sesión válida se guarda en `localStorage` con la clave `usuarioLogueado`; el correo de administración lleva al panel.
-5. **Catálogo y carrito:** el catálogo se crea a partir del arreglo de productos. Al agregar o cambiar unidades, se actualiza el `Map` y se vuelve a dibujar el carrito, su cantidad, el subtotal, el costo de envío y el total.
-6. **Confirmación del pedido:** antes de enviar, se comprueba que el formulario sea válido, haya productos, exista destino y haya una sesión. Luego se arma el JSON y se envía al endpoint de creación. Si la respuesta es exitosa, se limpia el formulario y el carrito, y se vuelve a consultar el historial.
-7. **Historial:** `cargarHistorialUsuario` solicita los pedidos del usuario. Normaliza los datos recibidos y `renderizarHistorial` crea una tarjeta con número, fecha, productos, destino, prioridad, estado y total. El identificador de carga evita que una respuesta antigua reemplace datos de otra sesión.
+4. **Cuenta y sesión:** al abrir la tienda se muestran únicamente el inicio de sesión y el registro; las vistas principales permanecen ocultas hasta que exista una sesión válida. Las pestañas cambian entre acceso y registro. El formulario envía los datos al backend. Una sesión válida se guarda en `localStorage` con la clave `usuarioLogueado`; el correo de administración lleva al panel. Tras un registro, se utiliza el identificador devuelto por el backend o se inicia sesión automáticamente para obtenerlo.
+5. **Catálogo y carrito:** el catálogo se solicita y se muestra solo con una sesión válida. Al agregar uno, el carrito conserva su ID real de base de datos junto con la cantidad; al cambiar unidades, se vuelve a dibujar el carrito, su subtotal, el costo de envío y el total. Al cerrar sesión, se limpian los productos y el carrito.
+6. **Confirmación del pedido:** antes de enviar, se comprueba que exista una sesión válida, que el formulario sea válido, haya productos y exista destino. Luego se arma el JSON y se envía al endpoint de creación. Si la respuesta es exitosa, se limpia el formulario y el carrito, y se vuelve a consultar el historial.
+7. **Historial:** `cargarHistorialUsuario` consulta `api/pedido/usuario/{idUsuario}`. Normaliza los datos recibidos y `renderizarHistorial` crea una tarjeta con número, fecha, productos, destino, prioridad, estado y total. El identificador de carga evita que una respuesta antigua reemplace datos de otra sesión.
 
-**Nota sobre el pedido:** el JSON de creación representa un solo producto y una cantidad, aunque el total local suma los productos del carrito. Si se permite comprar varios productos juntos, el contrato del backend debería aceptar una colección de artículos y el frontend debería enviar esa colección.
+**Nota sobre el pedido:** el JSON de creación agrupa los datos generales dentro de `pedido` (incluidos `usuario` con `idUsuario` y `tipo`) y envía los artículos del carrito en `detalles`, cada uno con `idProducto` y `cantidad`. El monto total incluye los productos y el costo del destino seleccionado.
 
 ## Panel de administración
 

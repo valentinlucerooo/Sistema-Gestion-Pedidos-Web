@@ -18,13 +18,13 @@
         <span>Tienda <strong>Norte</strong></span>
       </a>
       <nav class="header-actions navegacion-tienda" aria-label="Navegación principal">
-        <a class="header-nav-link enlace-seccion-tienda" href="#productos">Productos</a>
-        <a class="header-nav-link enlace-seccion-tienda" href="#historial">Mis pedidos</a>
+        <a class="header-nav-link enlace-seccion-tienda" href="#productos" data-auth-required hidden>Productos</a>
+        <a class="header-nav-link enlace-seccion-tienda" href="#historial" data-auth-required hidden>Mis pedidos</a>
         <a id="accountLink" class="header-account" href="#cuenta">Ingresar</a>
-        <button id="logoutButton" class="header-logout" type="button" hidden>
+        <button id="logoutButton" class="header-logout" type="button" data-auth-required hidden>
           Cerrar sesión
         </button>
-        <a class="header-cart acceso-carrito" href="#pedido" aria-label="Ver carrito">
+        <a class="header-cart acceso-carrito" href="#pedido" aria-label="Ver carrito" data-auth-required hidden>
           <span aria-hidden="true">🛍️</span>
           <span>Mi pedido</span>
           <span id="cartCount" class="header-cart__count" aria-live="polite">0</span>
@@ -33,7 +33,7 @@
     </header>
 
     <main class="contenido-tienda">
-      <section class="hero portada-principal" aria-labelledby="pageTitle">
+      <section class="hero portada-principal" aria-labelledby="pageTitle" data-auth-required hidden>
         <div class="hero__content contenido-portada">
           <p class="eyebrow">ELEGÍ, PRIORIZÁ Y ENVIÁ</p>
           <h1 id="pageTitle">Tu pedido, a tu manera.</h1>
@@ -117,7 +117,7 @@
         </div>
       </section>
 
-      <section id="productos" class="shop-section seccion-catalogo" aria-labelledby="productsTitle">
+      <section id="productos" class="shop-section seccion-catalogo" aria-labelledby="productsTitle" data-auth-required hidden>
         <div class="section-heading encabezado-catalogo">
           <div>
             <p class="eyebrow">CATÁLOGO</p>
@@ -129,7 +129,7 @@
         <div id="productGrid" class="product-grid grilla-catalogo" aria-live="polite"></div>
       </section>
 
-      <section id="pedido" class="order-section seccion-compra" aria-labelledby="orderTitle">
+      <section id="pedido" class="order-section seccion-compra" aria-labelledby="orderTitle" data-auth-required hidden>
         <div class="order-intro introduccion-compra">
           <p class="eyebrow">YA CASI ESTÁ</p>
           <h2 id="orderTitle">Tu pedido</h2>
@@ -191,7 +191,7 @@
         </div>
       </section>
 
-      <section id="historial" class="history-section seccion-historial" aria-labelledby="historyTitle">
+      <section id="historial" class="history-section seccion-historial" aria-labelledby="historyTitle" data-auth-required hidden>
         <div class="section-heading encabezado-historial">
           <div>
             <p class="eyebrow">TU CUENTA</p>
@@ -206,7 +206,7 @@
       </section>
     </main>
 
-    <footer class="site-footer pie-tienda">
+    <footer class="site-footer pie-tienda" data-auth-required hidden>
       <a class="brand brand--footer marca-pie-tienda" href="#">
         <span class="brand__mark" aria-hidden="true">N</span>
         <span>Tienda <strong>Norte</strong></span>

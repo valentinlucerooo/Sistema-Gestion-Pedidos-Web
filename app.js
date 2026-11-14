@@ -1,101 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const productos = [
-    {
-      id: 4,
-      nombre: "Pava Eléctrica",
-      categoria: "ELECTRODOMÉSTICO",
-      precio: 15000,
-      icono: "🫖",
-      color: "sage"
-    },
-    {
-      id: 5,
-      nombre: "Motorola G9 plus",
-      categoria: "CELULAR",
-      precio: 200000,
-      icono: "📱",
-      color: "peach"
-    },
-    {
-      id: 6,
-      nombre: "Notebook Lenovo IdeaPad",
-      categoria: "ELECTRÓNICA",
-      precio: 1034808,
-      icono: "💻",
-      color: "lavender"
-    },
-    {
-      id: 7,
-      nombre: "Mouse Logitech M170",
-      categoria: "ACCESORIO",
-      precio: 206960,
-      icono: "🖱️",
-      color: "blue"
-    },
-    {
-      id: 11,
-      nombre: "Pava electrica Philips HD4695/90",
-      categoria: "Electrodomestico",
-      precio: 55000,
-      icono: "🫖",
-      color: "sage"
-    },
-    {
-      id: 12,
-      nombre: "freidora de aire Philips NA231/00",
-      categoria: "Electrodomestico",
-      precio: 200000,
-      icono: "🍟",
-      color: "peach"
-    },
-    {
-      id: 13,
-      nombre: "MicroondasBGH Digital B120DS20",
-      categoria: "Electrodomestico",
-      precio: 215000,
-      icono: "🍽️",
-      color: "lavender"
-    },
-    {
-      id: 14,
-      nombre: "licuadora lliana chopblend AL453",
-      categoria: "Electrodomestico",
-      precio: 68000,
-      icono: "🥤",
-      color: "blue"
-    },
-    {
-      id: 24,
-      nombre: "televisor samsung crystal UHD 43\" 4K",
-      categoria: "Tecnologia",
-      precio: 250000,
-      icono: "📺",
-      color: "lavender"
-    },
-    {
-      id: 25,
-      nombre: "JBL Flip 6",
-      categoria: "Tecnologia",
-      precio: 230000,
-      icono: "🔊",
-      color: "sage"
-    },
-    {
-      id: 26,
-      nombre: "Xiaomi smart Band mi Band 8",
-      categoria: "Tecnologia",
-      precio: 180000,
-      icono: "⌚",
-      color: "peach"
-    },
-    {
-      id: 27,
-      nombre: "plancha de pelo Gama Bella toumaline",
-      categoria: "Tecnologia",
-      precio: 110000,
-      icono: "💇",
-      color: "blue"
-    }
+  let productos = [];
+  const estilosProductos = [
+    { icono: "🛍️", color: "sage" },
+    { icono: "📦", color: "peach" },
+    { icono: "✨", color: "lavender" },
+    { icono: "🛒", color: "blue" }
   ];
   const destinos = [
     { id: 1016, nombre: "CABA", costo: 10000 },
@@ -135,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const mensajeAuth = document.querySelector("#authResponse");
   const pestanasAuth = Array.from(document.querySelectorAll("[data-auth-mode]"));
   const camposRegistro = Array.from(document.querySelectorAll("[data-register-only]"));
+  const vistasProtegidas = Array.from(document.querySelectorAll("[data-auth-required]"));
   const inputNombre = document.querySelector("#authNombre");
   const inputApellido = document.querySelector("#authApellido");
   const inputEmail = document.querySelector("#authEmail");
@@ -142,6 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let modoAuth = "login";
   let isSubmittingAuth = false;
   let cargaHistorialActual = 0;
+  let sesionActiva = false;
+  let catalogoCargado = false;
 
   function obtenerUsuarioGuardado() {
     try {
@@ -158,6 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const idUsuario = Number(usuario?.idUsuario);
     const haySesion = Number.isInteger(idUsuario) && idUsuario > 0;
 
+    sesionActiva = haySesion;
+    vistasProtegidas.forEach((vista) => {
+      vista.hidden = !haySesion;
+    });
     encabezado.classList.toggle("has-session", haySesion);
     enlaceCuenta.textContent = haySesion ? "Mi cuenta" : "Ingresar";
     botonCerrarSesion.hidden = !haySesion;
@@ -175,6 +91,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     cargaHistorialActual += 1;
     pedidosRealizados.splice(0);
+    carrito.clear();
+    productos = [];
+    catalogoCargado = false;
+    grillaProductos.replaceChildren();
+    formulario.reset();
+    mensajePantalla.textContent = "";
+    mensajePantalla.classList.remove("is-error");
+    renderizarCarrito();
     renderizarHistorial();
     estadoHistorial.textContent = "";
     estadoHistorial.classList.remove("is-error");
@@ -270,6 +194,10 @@ document.addEventListener("DOMContentLoaded", () => {
           email: inputEmail.value.trim(),
           "contraseña": inputContrasena.value
         };
+    const credenciales = {
+      email: inputEmail.value.trim(),
+      "contraseña": inputContrasena.value
+    };
     const ruta = esRegistro
       ? "https://localhost:7195/api/usuariocontrol/Registrar"
       : "https://localhost:7195/api/usuariocontrol/Validar";
@@ -309,44 +237,84 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       }
 
-      if (!esRegistro) {
-        const usuarioRespuesta = datosRecibidos?.usuario || datosRecibidos?.data?.usuario || datosRecibidos;
-        const idUsuario = Number(usuarioRespuesta?.idUsuario);
+      let resultadoAutenticacion = datosRecibidos;
+      let usuarioRespuesta = resultadoAutenticacion?.usuario
+        || resultadoAutenticacion?.data?.usuario
+        || resultadoAutenticacion?.data
+        || resultadoAutenticacion;
+      let idUsuario = Number(usuarioRespuesta?.idUsuario);
 
-        if (Number.isInteger(idUsuario) && idUsuario > 0) {
-          const emailUsuario = usuarioRespuesta.email || usuario.email;
-          pedidosRealizados.splice(0);
-          renderizarHistorial();
-          localStorage.setItem(
-            "usuarioLogueado",
-            JSON.stringify({
-              idUsuario,
-              nombre: usuarioRespuesta.nombre,
-              apellido: usuarioRespuesta.apellido,
-              email: emailUsuario
-            })
-          );
-          actualizarNavegacionUsuario();
-
-          if (
-            typeof emailUsuario === "string"
-            && emailUsuario.trim().toLowerCase() === "admin@ecommerce.com"
-          ) {
-            window.location.href = "admin.html";
-            return;
+      if (esRegistro && (!Number.isInteger(idUsuario) || idUsuario <= 0)) {
+        const respuestaInicio = await fetch(
+          "https://localhost:7195/api/usuariocontrol/Validar",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(credenciales)
           }
-
-          await cargarHistorialUsuario();
-        } else {
-          localStorage.removeItem("usuarioLogueado");
-          mensajeAuth.textContent =
-            "Inicio validado, pero el servidor no devolvió idUsuario. No se puede cargar el historial.";
-          return;
+        );
+        const textoInicio = await respuestaInicio.text();
+        let datosInicio = textoInicio;
+        if (textoInicio) {
+          try {
+            datosInicio = JSON.parse(textoInicio);
+          } catch {
+            datosInicio = textoInicio;
+          }
         }
+        if (!respuestaInicio.ok) {
+          throw new Error(
+            `La cuenta se registró, pero no se pudo iniciar sesión automáticamente. ${obtenerMensajeAuth(
+              datosInicio,
+              "Iniciá sesión con tus datos para continuar."
+            )}`
+          );
+        }
+        resultadoAutenticacion = datosInicio;
+        usuarioRespuesta = resultadoAutenticacion?.usuario
+          || resultadoAutenticacion?.data?.usuario
+          || resultadoAutenticacion?.data
+          || resultadoAutenticacion;
+        idUsuario = Number(usuarioRespuesta?.idUsuario);
       }
 
+      if (!Number.isInteger(idUsuario) || idUsuario <= 0) {
+        localStorage.removeItem("usuarioLogueado");
+        mensajeAuth.textContent = esRegistro
+          ? "La cuenta se registró, pero el servidor no devolvió idUsuario. Iniciá sesión para continuar."
+          : "Inicio validado, pero el servidor no devolvió idUsuario. No se puede cargar el historial.";
+        mensajeAuth.classList.add("is-error");
+        return;
+      }
+
+      const emailUsuario = usuarioRespuesta.email || usuario.email;
+      pedidosRealizados.splice(0);
+      renderizarHistorial();
+      localStorage.setItem(
+        "usuarioLogueado",
+        JSON.stringify({
+          idUsuario,
+          nombre: usuarioRespuesta.nombre || usuario.nombre,
+          apellido: usuarioRespuesta.apellido || usuario.apellido,
+          email: emailUsuario
+        })
+      );
+      actualizarNavegacionUsuario();
+
+      if (
+        typeof emailUsuario === "string"
+        && emailUsuario.trim().toLowerCase() === "admin@ecommerce.com"
+      ) {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      await cargarCatalogo();
+      await cargarHistorialUsuario();
       mensajeAuth.textContent = obtenerMensajeAuth(
-        datosRecibidos,
+        resultadoAutenticacion,
         esRegistro
           ? "Tu cuenta se registró correctamente."
           : "Inicio de sesión validado correctamente."
@@ -370,32 +338,152 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  grillaProductos.innerHTML = productos
-    .map(
-      (producto) => `
+  function obtenerCampoProducto(producto, ...campos) {
+    for (const campo of campos) {
+      if (producto[campo] !== undefined && producto[campo] !== null) {
+        return producto[campo];
+      }
+    }
+    return null;
+  }
+
+  function escaparHtml(valor) {
+    return String(valor).replace(/[&<>"']/g, (caracter) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      "\"": "&quot;",
+      "'": "&#39;"
+    })[caracter]);
+  }
+
+  function renderizarCatalogo() {
+    grillaProductos.classList.remove("is-error");
+    if (productos.length === 0) {
+      grillaProductos.textContent = "Todavía no hay productos disponibles.";
+      return;
+    }
+
+    grillaProductos.innerHTML = productos
+      .map((producto, indice) => {
+        const estilo = estilosProductos[indice % estilosProductos.length];
+        return `
         <article class="product-card">
-          <div class="product-card__visual product-card__visual--${producto.color}">
-            <span class="product-card__emoji" aria-hidden="true">${producto.icono}</span>
+          <div class="product-card__visual product-card__visual--${estilo.color}">
+            <span class="product-card__emoji" aria-hidden="true">${estilo.icono}</span>
           </div>
           <div class="product-card__details">
-            <p class="product-card__category">${producto.categoria}</p>
-            <h3>${producto.nombre}</h3>
+            <p class="product-card__category">${escaparHtml(producto.categoria)}</p>
+            <h3>${escaparHtml(producto.nombre)}</h3>
             <div class="product-card__bottom">
               <span class="product-card__price">${formatoPrecio.format(producto.precio)}</span>
               <button
                 class="add-button"
                 type="button"
                 data-add-product="${producto.id}"
-                aria-label="Agregar ${producto.nombre} al pedido"
+                aria-label="Agregar ${escaparHtml(producto.nombre)} al pedido"
               >
                 <span aria-hidden="true">+</span> Agregar al carrito
               </button>
             </div>
           </div>
         </article>
-      `
-    )
-    .join("");
+      `;
+      })
+      .join("");
+  }
+
+  async function cargarCatalogo() {
+    if (!sesionActiva || catalogoCargado) return;
+    grillaProductos.textContent = "Cargando productos...";
+
+    try {
+      const respuesta = await fetch("https://localhost:7195/api/producto");
+      const textoRespuesta = await respuesta.text();
+      if (!sesionActiva) return;
+      let datos = textoRespuesta;
+
+      if (textoRespuesta) {
+        try {
+          datos = JSON.parse(textoRespuesta);
+        } catch {
+          if (respuesta.ok) {
+            throw new Error("El servidor devolvió el catálogo con un formato no válido.");
+          }
+        }
+      }
+
+      if (!respuesta.ok) {
+        throw new Error(obtenerMensajeAuth(
+          datos,
+          `El servidor respondió con el estado ${respuesta.status}.`
+        ));
+      }
+
+      const registros = Array.isArray(datos)
+        ? datos
+        : datos?.productos || datos?.Productos || datos?.data;
+      if (!Array.isArray(registros)) {
+        throw new Error("El servidor devolvió el catálogo con un formato no válido.");
+      }
+
+      productos = registros.map((registro, indice) => {
+        if (!registro || typeof registro !== "object" || Array.isArray(registro)) {
+          throw new Error(`El producto recibido en la posición ${indice + 1} no tiene un formato válido.`);
+        }
+
+        const id = Number(obtenerCampoProducto(
+          registro,
+          "idProducto",
+          "idproducto",
+          "IDProducto",
+          "id"
+        ));
+        const nombre = obtenerCampoProducto(registro, "descripcion", "nombre", "Descripcion");
+        const precioOriginal = obtenerCampoProducto(
+          registro,
+          "precio",
+          "costo",
+          "precioProducto"
+        );
+        const precio = Number(precioOriginal);
+        const categoria = obtenerCampoProducto(
+          registro,
+          "productoTipo",
+          "tipoProducto",
+          "categoria",
+          "tipo"
+        );
+
+        if (!Number.isInteger(id) || id <= 0 || typeof nombre !== "string"
+          || !nombre.trim() || precioOriginal === null || precioOriginal === ""
+          || !Number.isFinite(precio) || precio < 0) {
+          throw new Error(`El producto recibido en la posición ${indice + 1} no tiene datos válidos.`);
+        }
+
+        const estilo = estilosProductos[indice % estilosProductos.length];
+        return {
+          id,
+          nombre: nombre.trim(),
+          categoria: typeof categoria === "string" && categoria.trim()
+            ? categoria.trim()
+            : "Sin categoría",
+          precio,
+          icono: estilo.icono,
+          color: estilo.color
+        };
+      });
+      renderizarCatalogo();
+      catalogoCargado = true;
+    } catch (error) {
+      if (!sesionActiva) return;
+      console.error("Error al cargar productos:", error);
+      grillaProductos.textContent = error instanceof TypeError
+        ? "No se pudo conectar con el servidor. Revisá que esté disponible e intentá nuevamente."
+        : `No se pudieron cargar los productos: ${error.message}`;
+      grillaProductos.classList.add("is-error");
+    }
+  }
 
   function obtenerDestinoSeleccionado() {
     return destinos.find((destino) => destino.id === Number(seleccionDestino.value));
@@ -519,7 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const respuesta = await fetch(
-        `https://localhost:7195/api/pedido/pedidocontrol/usuario/${idUsuario}`
+        `https://localhost:7195/api/pedido/usuario/${idUsuario}`
       );
       if (cargaActual !== cargaHistorialActual) return;
 
@@ -607,7 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
     totalCarrito.textContent = formatoPrecio.format(
       precioProductos + (cantidadTotal > 0 ? precioEnvio : 0)
     );
-    botonEnviar.disabled = productosEnCarrito.length === 0 || isSubmitting;
+    botonEnviar.disabled = !sesionActiva || productosEnCarrito.length === 0 || isSubmitting;
     grillaProductos.querySelectorAll("[data-add-product]").forEach((boton) => {
       boton.disabled = isSubmitting;
     });
@@ -620,20 +708,21 @@ document.addEventListener("DOMContentLoaded", () => {
     listaCarrito.innerHTML = productosEnCarrito
       .map(([id, cantidad]) => {
         const producto = productos.find((item) => item.id === id);
+        const nombreProducto = escaparHtml(producto.nombre);
         return `
           <article class="cart-row">
             <span class="cart-row__icon" aria-hidden="true">${producto.icono}</span>
             <div>
-              <p class="cart-row__name">${producto.nombre}</p>
+              <p class="cart-row__name">${nombreProducto}</p>
               <p class="cart-row__unit-price">${formatoPrecio.format(producto.precio)} c/u</p>
             </div>
-            <div class="cart-row__actions" aria-label="Cantidad de ${producto.nombre}">
+            <div class="cart-row__actions" aria-label="Cantidad de ${nombreProducto}">
               <button
                 class="quantity-button"
                 type="button"
                 data-change-quantity="-1"
                 data-product-id="${id}"
-                aria-label="Quitar una unidad de ${producto.nombre}"
+                aria-label="Quitar una unidad de ${nombreProducto}"
                 ${isSubmitting ? "disabled" : ""}
               >−</button>
               <span class="cart-row__quantity">${cantidad}</span>
@@ -642,7 +731,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 type="button"
                 data-change-quantity="1"
                 data-product-id="${id}"
-                aria-label="Agregar una unidad de ${producto.nombre}"
+                aria-label="Agregar una unidad de ${nombreProducto}"
                 ${isSubmitting ? "disabled" : ""}
               >+</button>
             </div>
@@ -655,7 +744,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   grillaProductos.addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-add-product]");
-    if (!boton || isSubmitting) return;
+    if (!boton || !sesionActiva || isSubmitting) return;
 
     const id = Number(boton.dataset.addProduct);
     carrito.set(id, (carrito.get(id) || 0) + 1);
@@ -666,7 +755,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   listaCarrito.addEventListener("click", (evento) => {
     const boton = evento.target.closest("[data-change-quantity]");
-    if (!boton || isSubmitting) return;
+    if (!boton || !sesionActiva || isSubmitting) return;
 
     const id = Number(boton.dataset.productId);
     const nuevaCantidad = (carrito.get(id) || 0) + Number(boton.dataset.changeQuantity);
@@ -684,6 +773,13 @@ document.addEventListener("DOMContentLoaded", () => {
     evento.preventDefault();
     mensajePantalla.textContent = "";
     mensajePantalla.classList.remove("is-error");
+
+    if (!sesionActiva) {
+      mensajePantalla.textContent = "Tenés que iniciar sesión antes de confirmar el pedido.";
+      mensajePantalla.classList.add("is-error");
+      document.querySelector("#cuenta").scrollIntoView({ behavior: "smooth" });
+      return;
+    }
 
     if (!formulario.checkValidity()) {
       formulario.reportValidity();
@@ -717,47 +813,38 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const productosPedido = Array.from(carrito.entries()).map(([id, cantidad]) => ({
-      producto: { idProducto: id },
-      cantidad
+    const detalles = Array.from(carrito.entries()).map(([idProducto, cantidad]) => ({
+      idProducto: Number(idProducto),
+      cantidad: Number(cantidad)
     }));
-    const total = productosPedido.reduce((subtotal, item) => {
+    const total = detalles.reduce((subtotal, detalle) => {
       const producto = productos.find((productoDisponible) =>
-        productoDisponible.id === item.producto.idProducto
+        productoDisponible.id === detalle.idProducto
       );
-      return subtotal + producto.precio * item.cantidad;
+      return subtotal + producto.precio * detalle.cantidad;
     }, destino.costo);
-   // Tomamos el primer producto seleccionado del carrito
-    const primerItem = productosPedido[0];
-
-    // Buscamos el producto completo en tu lista local para sacar su nombre y categoría
-    const productoOriginal = productos.find(p => p.id === Number(primerItem.producto.idProducto));
-
     const pedido = {
-      usuario: {
-        idUsuario
+      pedido: {
+        usuario: {
+          idUsuario
+        },
+        envio: {
+          idEnvio: Number(destino.id),
+          zona: seleccionDestino.options[seleccionDestino.selectedIndex].text
+        },
+        montoTotal: Number(total),
+        prioridad: String(formulario.elements.prioridad.value.trim()),
+        tipo: "General",
+        estado: "Pendiente",
+        fechaRegistro: new Date().toISOString()
       },
-      producto: { 
-        idProducto: Number(primerItem.producto.idProducto),
-        descripcion: productoOriginal ? productoOriginal.nombre : "Producto",
-        productoTipo: productoOriginal ? productoOriginal.categoria : "GENERAL"
-      },
-      cantidad: Number(primerItem.cantidad),
-      envio: { 
-        idEnvio: Number(destino.id),
-        zona: destino.nombre 
-      },
-      montoTotal: Number(total),
-      prioridad: String(formulario.elements.prioridad.value.trim()),
-      tipo: "General",
-      estado: "Pendiente",
-      fechaRegistro: new Date().toISOString()
+      detalles
     };
     const pedidoParaHistorial = {
       fecha: new Date(),
-      estado: pedido.estado,
+      estado: pedido.pedido.estado,
       destino: destino.nombre,
-      prioridad: pedido.prioridad,
+      prioridad: pedido.pedido.prioridad,
       productos: Array.from(carrito.entries()).map(([id, cantidad]) => {
         const producto = productos.find((item) => item.id === id);
         return {
@@ -774,7 +861,7 @@ document.addEventListener("DOMContentLoaded", () => {
     botonEnviar.textContent = "Enviando pedido...";
 
     try {
-      const respuesta = await fetch("https://localhost:7195/api/pedido/PedidoControl/individual", {
+      const respuesta = await fetch("https://localhost:7195/api/pedido/individual", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -828,5 +915,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderizarCarrito();
   renderizarHistorial();
   actualizarNavegacionUsuario();
-  cargarHistorialUsuario();
+  if (sesionActiva) {
+    cargarCatalogo();
+    cargarHistorialUsuario();
+  }
 });
